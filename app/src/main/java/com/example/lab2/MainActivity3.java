@@ -1,4 +1,4 @@
-package com.example.clase2;
+package com.example.lab2;
 
 import androidx.appcompat.app.AppCompatActivity;
 

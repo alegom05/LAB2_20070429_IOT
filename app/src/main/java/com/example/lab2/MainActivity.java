@@ -1,36 +1,34 @@
-package com.example.clase2;
+package com.example.lab2;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.ContextMenu;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.PopupMenu;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import com.example.clase2.bean.Persona;
-
-import org.w3c.dom.Text;
+import com.example.clase2.R;
 
 public class MainActivity extends AppCompatActivity {
 
     public static String TAG = "MAINACTDEBUG";
+    Button btnSoftware, btnCiber, btnOpticas;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Log.d(TAG, "oncreate");
+
+        btnSoftware = findViewById(R.id.buttonSoft);
+        btnCiber = findViewById(R.id.buttonCiber);
+        btnOpticas = findViewById(R.id.buttonOpt);
+
+        btnSoftware.setOnClickListener(v -> abrirJuego("Software"));
+        btnCiber.setOnClickListener(v -> abrirJuego("Ciberseguridad"));
+        btnOpticas.setOnClickListener(v -> abrirJuego("Ópticas"));
+
+
 
         /*Button button = findViewById(R.id.button2);
         button.setOnClickListener(view -> {
@@ -185,6 +183,12 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
     );*/
+    }
+
+    private void abrirJuego(String tema) {
+        Intent intent = new Intent(this, MyGameActivity.class);
+        intent.putExtra("tema", tema);
+        startActivity(intent);
     }
 
 }
