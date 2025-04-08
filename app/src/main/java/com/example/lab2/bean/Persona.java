@@ -2,6 +2,7 @@ package com.example.lab2.bean;
 
 import java.io.Serializable;
 
+// Beans de Persona, para manejo de datos
 public class Persona implements Serializable {
 
     private String nombre;

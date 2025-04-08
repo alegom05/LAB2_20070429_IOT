@@ -1,54 +1,64 @@
 package com.example.lab2;
 
-
-
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.lab2.R;
-
 import java.util.*;
 
+/*En el caso de MyGameActivity, hice uso de la IA para facilitar
+los métodos. Voy a proceder a explicarlos*/
 public class MyGameActivity extends AppCompatActivity {
 
     private TextView tvTema, tvIntentos;
     private GridLayout gridPalabras;
     private Button btnNuevoJuego;
-
     private List<String> oracionCorrecta;
     private List<String> palabrasSeleccionadas = new ArrayList<>();
     private int intentoActual = 0;
     private final int MAX_INTENTOS = 3;
-
     private long startTime;
-
     private String tema;
+    private int numeroJuego;
+    private List<Button> botonesSeleccionados = new ArrayList<>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_game);
 
-        tvTema = findViewById(R.id.tvTema);
+        tvTema = findViewById(R.id.tvTema); // Ahora mostrará "Juego N"
         tvIntentos = findViewById(R.id.tvIntentos);
         gridPalabras = findViewById(R.id.gridPalabras);
         btnNuevoJuego = findViewById(R.id.btnNuevoJuego);
 
         tema = getIntent().getStringExtra("tema");
-        tvTema.setText("Tema: " + tema);
 
+        // Uso de SharedPreferences
+        SharedPreferences prefs = getSharedPreferences("stats", MODE_PRIVATE);
+        numeroJuego = prefs.getInt("numero_juego", 1); // por defecto 1
+        tvTema.setText("Juego " + numeroJuego);
+
+        // Inicio de cronómetro
         startTime = System.currentTimeMillis();
 
         generarPalabras();
 
         btnNuevoJuego.setOnClickListener(v -> {
-            // Volver al inicio
+            SharedPreferences p = getSharedPreferences("stats", MODE_PRIVATE);
+            Set<String> historial = new HashSet<>(p.getStringSet("historial", new HashSet<>()));
+            historial.add("Canceló – Juego " + numeroJuego + " – Tema: " + tema);
+            p.edit().putStringSet("historial", historial).apply();
+
+            // Reiniciar
             Intent intent = new Intent(this, MainActivity.class);
-            intent.putExtra("cancelado", true);
             startActivity(intent);
             finish();
         });
@@ -58,10 +68,9 @@ public class MyGameActivity extends AppCompatActivity {
             Intent intent = new Intent(this, MyStatisticsActivity.class);
             startActivity(intent);
         });
-
     }
 
-
+    /* Método para generar las palabras de manera aleatoria */
     private void generarPalabras() {
         oracionCorrecta = obtenerOracionAleatoria(tema);
         List<String> palabrasDesordenadas = new ArrayList<>(oracionCorrecta);
@@ -71,24 +80,46 @@ public class MyGameActivity extends AppCompatActivity {
 
         for (String palabra : palabrasDesordenadas) {
             Button btn = new Button(this);
-            btn.setText(palabra);
+            btn.setText("");
+            btn.setTag(palabra);
+
+            // Estilo con márgenes y centrado
+            GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+            params.setMargins(16, 16, 16, 16);
+            params.width = GridLayout.LayoutParams.WRAP_CONTENT;
+            params.height = GridLayout.LayoutParams.WRAP_CONTENT;
+            params.setGravity(Gravity.CENTER);
+            btn.setLayoutParams(params);
+            btn.setBackgroundColor(Color.parseColor("#DDDDDD"));
+
             btn.setOnClickListener(v -> manejarSeleccion(btn));
             gridPalabras.addView(btn);
         }
     }
 
+    // Maneja los aciertos de palabras.
     private void manejarSeleccion(Button btn) {
-        String palabra = btn.getText().toString();
+        String palabra = btn.getTag().toString();
 
         if (palabra.equals(oracionCorrecta.get(palabrasSeleccionadas.size()))) {
             palabrasSeleccionadas.add(palabra);
+            botonesSeleccionados.add(btn);
+
+            btn.setText(palabra); // Uso de tag.
+            btn.setTextColor(Color.WHITE);
             btn.setEnabled(false);
-            btn.setBackgroundColor(0xFFB2FF59); // verde claro
+            btn.setBackgroundColor(Color.parseColor("#4CAF50"));
+
+            btn.animate().scaleX(1.2f).scaleY(1.2f).setDuration(150).withEndAction(() ->
+                    btn.animate().scaleX(1f).scaleY(1f).setDuration(150)
+            ).start();
 
             if (palabrasSeleccionadas.size() == oracionCorrecta.size()) {
                 mostrarResultado(true);
             }
-        } else {
+        }
+
+        else {
             intentoActual++;
             palabrasSeleccionadas.clear();
             tvIntentos.setText("Intentos: " + intentoActual + " / " + MAX_INTENTOS);
@@ -98,10 +129,15 @@ public class MyGameActivity extends AppCompatActivity {
             for (int i = 0; i < gridPalabras.getChildCount(); i++) {
                 View child = gridPalabras.getChildAt(i);
                 if (child instanceof Button) {
-                    child.setEnabled(true);
-                    child.setBackgroundColor(0xFFDDDDDD); // gris
+                    Button boton = (Button) child;
+                    boton.setEnabled(true);
+                    boton.setBackgroundColor(Color.parseColor("#DDDDDD"));
+                    boton.setText(""); // Ocultar todas las palabras (incluso las correctas)
                 }
             }
+
+            palabrasSeleccionadas.clear();
+            botonesSeleccionados.clear();
 
             if (intentoActual >= MAX_INTENTOS) {
                 mostrarResultado(false);
@@ -109,32 +145,40 @@ public class MyGameActivity extends AppCompatActivity {
         }
     }
 
+    /* Aquí se controla el modal que sale cuando el juego
+    * ha acabado*/
     private void mostrarResultado(boolean gano) {
         long tiempo = (System.currentTimeMillis() - startTime) / 1000;
-        String mensaje = gano ?
-                "¡Ganaste! Tiempo: " + tiempo + "s. Intentos: " + intentoActual :
-                "Perdiste. Tiempo: " + tiempo + "s.";
+
+        String mensaje = "Juego " + numeroJuego + "\n" +
+                (gano ? "Ganó" : "Perdió") + "\n" +
+                "Intentos usados: " + intentoActual;
 
         Toast.makeText(this, mensaje, Toast.LENGTH_LONG).show();
 
-        // Guardar resultado
-        String resultado = gano ?
-                "Ganó – Tema: " + tema + " – Intentos: " + intentoActual + " – Tiempo: " + tiempo + "s" :
-                "Perdió – Tema: " + tema + " – Tiempo: " + tiempo + "s";
+        // Guardar resultado en historial
+        String resultado = "Juego " + numeroJuego + " – " +
+                (gano ? "Ganó" : "Perdió") +
+                " – Intentos: " + intentoActual +
+                " – Tiempo: " + tiempo + "s";
 
         SharedPreferences prefs = getSharedPreferences("stats", MODE_PRIVATE);
         Set<String> historial = new HashSet<>(prefs.getStringSet("historial", new HashSet<>()));
         historial.add(resultado);
 
-        prefs.edit().putStringSet("historial", historial).apply();
+        // Guardar nuevo número de juego
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putStringSet("historial", historial);
+        editor.putInt("numero_juego", numeroJuego + 1);
+        editor.apply();
 
-        // Deshabilitar botones
         for (int i = 0; i < gridPalabras.getChildCount(); i++) {
             gridPalabras.getChildAt(i).setEnabled(false);
         }
     }
 
-
+    /*Aquí se manejan las oraciones de las que consta
+    * el juego*/
     private List<String> obtenerOracionAleatoria(String tema) {
         Random rand = new Random();
         String frase;

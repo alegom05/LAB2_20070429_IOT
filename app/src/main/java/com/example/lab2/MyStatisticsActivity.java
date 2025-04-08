@@ -27,12 +27,19 @@ public class MyStatisticsActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("stats", MODE_PRIVATE);
         Set<String> historial = prefs.getStringSet("historial", null);
 
+        /* El if que maneja hasta 10 registros en el historial
+        *  porque me pareció adecuado que no se sobrecargara*/
         if (historial != null) {
+            int count = 0;
             for (String entrada : historial) {
+                if (count >= 10) break; // mostrar solo 10
+
                 TextView tv = new TextView(this);
                 tv.setText(entrada);
                 tv.setPadding(8, 8, 8, 8);
                 layoutHistorial.addView(tv);
+
+                count++;
             }
         }
 
