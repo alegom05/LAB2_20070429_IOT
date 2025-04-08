@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace 'com.example.clase2'
-    compileSdk 33
+    namespace 'com.example.lab2'
+    compileSdk 35
 
     defaultConfig {
-        applicationId "com.example.clase2"
+        applicationId "com.example.lab2"
         minSdk 27
         targetSdk 33
         versionCode 1

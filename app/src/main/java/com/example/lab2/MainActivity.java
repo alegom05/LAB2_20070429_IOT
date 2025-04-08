@@ -7,7 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 
-import com.example.clase2.R;
+import com.example.lab2.R;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
         btnSoftware.setOnClickListener(v -> abrirJuego("Software"));
         btnCiber.setOnClickListener(v -> abrirJuego("Ciberseguridad"));
         btnOpticas.setOnClickListener(v -> abrirJuego("Ópticas"));
+
 
 
 

@@ -43,7 +43,7 @@
             android:id="@+id/imgLogo"
             android:layout_width="150dp"
             android:layout_height="150dp"
-            android:src="@drawable/ic_antena"
+            android:src="@drawable/icantena"
             android:layout_marginBottom="24dp" />
 
         <Button
